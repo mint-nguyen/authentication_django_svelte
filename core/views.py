@@ -3,8 +3,7 @@ from rest_framework.response import Response
 from rest_framework import exceptions
 from core.serializers import UserSerializer
 from .models import User
-from .auth_token import create_auth_token, create_refresh_token, decode_auth_token, JWTAuthentication, decode_refresh_token
-from rest_framework.authentication import get_authorization_header
+from .auth_token import create_auth_token, create_refresh_token, JWTAuthentication, decode_refresh_token
 
 
 class RegisterAPIView(APIView):
@@ -63,3 +62,15 @@ class RefreshAPIView(APIView):
         return Response({
             'token': access_token
         })
+
+
+class LogoutAPIView(APIView):
+    def post(self, request):
+        response = Response()
+        response.delete_cookie(key='refresh_token')
+
+        response.data = {
+            'message': 'Log out successfully'
+        }
+
+        return response
