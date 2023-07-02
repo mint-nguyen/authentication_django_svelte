@@ -1,9 +1,11 @@
 import datetime
+import random
+import string
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import exceptions
 from core.serializers import UserSerializer
-from .models import User, UserTokens
+from .models import User, UserTokens, ResetPassword
 from .auth_token import create_auth_token, create_refresh_token, JWTAuthentication, decode_refresh_token
 
 
@@ -83,3 +85,15 @@ class LogoutAPIView(APIView):
         }
 
         return response
+
+
+class ResetPasswordAPIView(APIView):
+    def post(self, request):
+        token = ''.join(random.choice(string.ascii_lowercase +
+                        string.digits) for _ in range(10))
+        ResetPassword.objects.create(
+            email=request.data.get('email'), token=token)
+
+        return Response({
+            'message': 'Password reset',
+        })
