@@ -3,7 +3,8 @@ from rest_framework.response import Response
 from rest_framework import exceptions
 from core.serializers import UserSerializer
 from .models import User
-from .auth_token import create_auth_token, create_refresh_token
+from .auth_token import create_auth_token, create_refresh_token, decode_auth_token
+from rest_framework.authentication import get_authorization_header
 
 
 class RegisterAPIView(APIView):
@@ -45,3 +46,19 @@ class LoginAPIView(APIView):
         }
 
         return response
+
+
+class UserAPIView(APIView):
+    def get(self, request):
+        auth = get_authorization_header(request).split()
+
+        if auth and len(auth) == 2:
+            token = auth[1].decode('utf-8')
+            id = decode_auth_token(token)
+            user = User.objects.filter(id=id).first()
+
+            if user:
+                serializer = UserSerializer(user)
+                return Response(serializer.data)
+
+        raise Exception('Authentication credentials were not provided.')

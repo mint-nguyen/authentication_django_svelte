@@ -10,6 +10,15 @@ def create_auth_token(id):
     }, 'auth_secret', algorithm='HS256')
 
 
+def decode_auth_token(token):
+    try:
+        payload = jwt.decode(token, 'auth_secret', algorithms=[
+                             'HS256'])
+        return payload['user_id']
+    except Exception as e:
+        return 'Signature expired. Please log in again.'
+
+
 def create_refresh_token(id):
     return jwt.encode({
         'user_id': id,
