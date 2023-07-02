@@ -22,6 +22,6 @@ class UserTokens(models.Model):
     expired_at = models.DateTimeField()
 
 
-class ResetPassword(models.Model):
+class ForgotPassword(models.Model):
     email = models.EmailField()
     token = models.CharField(max_length=255, unique=True)

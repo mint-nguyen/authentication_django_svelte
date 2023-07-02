@@ -11,3 +11,8 @@
 ### To write packages to requirements.txt
 
 `pip freeze > requirements.txt`
+
+### To install `mailhog`
+
+1. Go to https://kinsta.com/blog/mailhog/ & download the respective package
+2. Run the file as is

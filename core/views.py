@@ -5,8 +5,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import exceptions
 from core.serializers import UserSerializer
-from .models import User, UserTokens, ResetPassword
+from .models import User, UserTokens, ForgotPassword
 from .auth_token import create_auth_token, create_refresh_token, JWTAuthentication, decode_refresh_token
+from django.core.mail import send_mail
 
 
 class RegisterAPIView(APIView):
@@ -87,12 +88,47 @@ class LogoutAPIView(APIView):
         return response
 
 
-class ResetPasswordAPIView(APIView):
+class ForgotPasswordAPIView(APIView):
     def post(self, request):
+        email = request.data.get('email')
         token = ''.join(random.choice(string.ascii_lowercase +
                         string.digits) for _ in range(10))
-        ResetPassword.objects.create(
-            email=request.data.get('email'), token=token)
+        ForgotPassword.objects.create(
+            email=email, token=token)
+
+        url = 'https://localhost:3000/reset/' + token
+
+        send_mail(
+            subject='Reset your password',
+            message=f'Click <a href=${url}>here</a> to reset your password!',
+            from_email='from@example.com',
+            recipient_list=[email]
+        )
+        return Response({
+            'message': 'Reset link sent successfully',
+        })
+
+
+class ResetAPIView(APIView):
+    def post(self, request):
+        data = request.data
+
+        if data['password'] != data['password_confirm']:
+            raise exceptions.APIException('Passwords do not match!')
+
+        reset_pw = ForgotPassword.objects.filter(
+            token=data['token']).first()
+
+        if not reset_pw:
+            raise exceptions.APIException('Invalid link!')
+
+        user = User.objects.filter(email=reset_pw.email).first()
+
+        if not user:
+            raise exceptions.APIException('User not found!')
+
+        user.set_password(data['password'])
+        user.save()
 
         return Response({
             'message': 'Password reset',
